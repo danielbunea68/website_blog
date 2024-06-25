@@ -1,0 +1,38 @@
+﻿@page "/"
+
+<PageTitle>My Blog</PageTitle>
+<div class="container">
+	@foreach(var post in posts)
+	{
+		<a href="/article/@post.Id">
+
+		
+		<div class="row">
+			<div class="col-sm-4">
+				<img class="w-100" src="img/articleMainImages/@post.Image">
+
+			</div>
+		    <div class="col-sm-8 post-front-page">
+				<h1>@post.Title</h1>
+				<p>@post.Introduction</p>
+		   </div>
+
+		</div>
+			</a>
+			
+		<hr />
+		<br />
+	}	
+</div>
+@using website_blog.Data;
+@inject AppDbContext _context;
+@code{
+	
+	public List<website_blog.Data.Post> posts;
+	protected override async Task OnInitializedAsync()
+	{
+		
+		posts = _context.Posts.ToList();
+
+	}
+}

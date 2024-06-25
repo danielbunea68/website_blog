@@ -1,0 +1,89 @@
+﻿@page "/article/{id:int}"
+@inject SignInManager<blogUser> SignInManager
+@inject UserManager<blogUser> UserManager
+
+<div class="container" style="margin-bottom:500px;">
+	<div class ="row">
+		<div class ="col-9">
+			<img class="w-100" src="img/articleMainImages/@post.Image">
+			<h1 class="postTitle">@post.Title</h1>
+			<h3 class="postIntroduction">@post.Introduction</h3>
+			<p class="postBodyText" >@((MarkupString)post.BodyText)</p>
+			<hr/>
+			<div calss "AddCommentContainer">
+				<h3>Add Comment</h3>
+				@if (SignInManager.IsSignedIn(currentUser))
+					{
+				<EditForm Model = "@commentModel" OnValidSubmit="@addComment">
+					<InputTextArea class="inputTextArea" @bind-Value="@commentModel.CommentText"/>
+					<button type ="submit" calss="btn btn-primary">Add Comment</button>
+
+					</EditForm>
+				}	
+				else
+				{
+					<p>You have to be logged in before you can comment </p>
+				}
+			</div>
+			<div class="comments">
+				<div class="comment">
+				<h5><span>NU|</span>Username</h5>
+				<p>This is the comment </p>
+				<hr />
+				</div>
+				<h5>Username</h5>
+				<p>This is the comment </p>
+				<hr />
+			</div>
+		</div>
+
+		<div class ="col-3">
+
+		</div>
+	</div>
+	
+
+</div>
+
+@using Microsoft.AspNetCore.Identity;
+@using System.Security.Claims;
+@using website_blog.Areas.Identity.Data;
+@using website_blog.Data;
+
+@inject AuthenticationStateProvider authenticationStateProvider 
+@inject AppDbContext _context;
+@code{
+	[Parameter]
+	public int id { get; set; }
+
+	public website_blog.Data.Post post;
+	public Comment commentModel= new Comment();
+	public ClaimsPrincipal currentUser { get; set; }
+	public string UserId { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		
+		post = _context.Posts.Where(x => x.Id == id).FirstOrDefault();
+
+		var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+		currentUser = authState.User;
+		@if (SignInManager.IsSignedIn(currentUser))
+		{
+			UserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+		}
+
+	}
+	public async Task addComment()
+	{
+		commentModel.blogUserId = UserId;
+		commentModel.PostId = id;
+		commentModel.Created = DateTime.Now;
+		_context.Comments.Add(commentModel);
+		await _context.SaveChangesAsync();
+		commentModel = new Comment();	
+
+	}
+
+	
+}
